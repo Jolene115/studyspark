@@ -1,0 +1,84 @@
+/**
+ * History service for managing quiz history in localStorage
+ */
+const HistoryService = {
+  /**
+   * Get all quiz history items
+   * @returns {Array} - Array of quiz history items
+   */
+  getHistory: () => {
+    try {
+      const historyData = localStorage.getItem('studySparkHistory');
+      return historyData ? JSON.parse(historyData) : [];
+    } catch (error) {
+      console.error('Error retrieving history:', error);
+      return [];
+    }
+  },
+  
+  /**
+   * Save a new quiz to history
+   * @param {Object} quizData - The quiz data to save
+   * @param {string} quizData.content - The study content summary
+   * @param {Array} quizData.questions - The quiz questions
+   * @returns {Object} - The saved quiz item with ID and date
+   */
+  saveQuiz: (quizData) => {
+    try {
+      const history = HistoryService.getHistory();
+      
+      // Create a new quiz history item
+      const newQuizItem = {
+        id: Date.now(),
+        date: new Date().toLocaleDateString(),
+        content: quizData.content.substring(0, 100) + (quizData.content.length > 100 ? '...' : ''),
+        questions: quizData.questions
+      };
+      
+      // Add to history and keep only the 10 most recent items
+      const updatedHistory = [newQuizItem, ...history.slice(0, 9)];
+      
+      // Save to localStorage
+      localStorage.setItem('studySparkHistory', JSON.stringify(updatedHistory));
+      
+      return newQuizItem;
+    } catch (error) {
+      console.error('Error saving to history:', error);
+      return null;
+    }
+  },
+  
+  /**
+   * Remove a quiz from history
+   * @param {number} id - The ID of the quiz to remove
+   * @returns {boolean} - Success status
+   */
+  removeQuiz: (id) => {
+    try {
+      const history = HistoryService.getHistory();
+      const updatedHistory = history.filter(item => item.id !== id);
+      
+      localStorage.setItem('studySparkHistory', JSON.stringify(updatedHistory));
+      return true;
+    } catch (error) {
+      console.error('Error removing from history:', error);
+      return false;
+    }
+  },
+  
+  /**
+   * Clear all quiz history
+   * @returns {boolean} - Success status
+   */
+  clearHistory: () => {
+    try {
+      localStorage.removeItem('studySparkHistory');
+      return true;
+    } catch (error) {
+      console.error('Error clearing history:', error);
+      return false;
+    }
+  }
+};
+
+export default HistoryService;
