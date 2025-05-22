@@ -20,104 +20,78 @@ import {
   Divider,
   AppBar,
   Toolbar,
-  IconButton
+  Card,
+  CardContent,
+  Chip
 } from '@mui/material';
 import SchoolIcon from '@mui/icons-material/School';
-import HistoryIcon from '@mui/icons-material/History';
-import CloseIcon from '@mui/icons-material/Close';
-import DeleteIcon from '@mui/icons-material/Delete';
+import LightbulbIcon from '@mui/icons-material/Lightbulb';
+import QuizIcon from '@mui/icons-material/Quiz';
 
 // Set up API URL based on environment
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 function App() {
   // State management
-  const [studyContent, setStudyContent] = useState('');
-  const [numQuestions, setNumQuestions] = useState(5);
+  const [topic, setTopic] = useState('');
+  const [level, setLevel] = useState('adult');
+  const [explanation, setExplanation] = useState('');
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [quizMode, setQuizMode] = useState(false);
+  const [showResults, setShowResults] = useState(false);
   const [userAnswers, setUserAnswers] = useState({});
+  const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [score, setScore] = useState(null);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [history, setHistory] = useState([]);
-  const [showHistory, setShowHistory] = useState(false);
 
-  // Load quiz history from local storage on component mount
-  useEffect(() => {
-    const savedHistory = localStorage.getItem('studySparkHistory');
-    if (savedHistory) {
-      try {
-        setHistory(JSON.parse(savedHistory));
-      } catch (e) {
-        console.error('Failed to parse history from localStorage:', e);
-      }
-    }
-  }, []);
-
-  // Save history to local storage whenever it changes
-  useEffect(() => {
-    if (history.length > 0) {
-      localStorage.setItem('studySparkHistory', JSON.stringify(history));
-    }
-  }, [history]);
-
-  // Handle study content changes
-  const handleContentChange = (e) => {
-    setStudyContent(e.target.value);
+  // Handle topic input change
+  const handleTopicChange = (e) => {
+    setTopic(e.target.value);
   };
 
-  // Handle number of questions changes
-  const handleNumQuestionsChange = (e) => {
-    setNumQuestions(e.target.value);
+  // Handle level selection change
+  const handleLevelChange = (e) => {
+    setLevel(e.target.value);
   };
 
-  // Handle quiz generation
-  const handleGenerateQuiz = async () => {
-    if (!studyContent.trim()) {
-      setError('Please enter some study content');
+  // Handle explanation and quiz generation
+  const handleGenerateContent = async () => {
+    if (!topic.trim()) {
+      setError('Please enter a topic to learn about');
       return;
     }
 
     setLoading(true);
     setError(null);
+    setShowResults(false);
+    setExplanation('');
     setQuizQuestions([]);
     setUserAnswers({});
+    setQuizSubmitted(false);
     setScore(null);
-    setIsSubmitted(false);
 
     try {
-      const response = await axios.post(`${API_URL}/api/generate-quiz`, {
-        studyContent,
-        numQuestions
+      const response = await axios.post(`${API_URL}/api/explain`, {
+        topic: topic.trim(),
+        level
       });
 
-      if (response.data.success && response.data.questions.length > 0) {
+      if (response.data.success) {
+        setExplanation(response.data.explanation);
         setQuizQuestions(response.data.questions);
-        setQuizMode(true);
-        
-        // Save to history
-        const newQuizItem = {
-          id: Date.now(),
-          date: new Date().toLocaleDateString(),
-          content: studyContent.substring(0, 100) + (studyContent.length > 100 ? '...' : ''),
-          questions: response.data.questions
-        };
-        
-        setHistory(prevHistory => [newQuizItem, ...prevHistory.slice(0, 9)]); // Keep only 10 most recent
+        setShowResults(true);
       } else {
-        setError('No quiz questions were generated. Try again with different content.');
+        setError('Failed to generate content. Please try again.');
       }
     } catch (err) {
-      console.error('Error generating quiz:', err);
-      setError(err.response?.data?.error || 'Failed to generate quiz. Please try again.');
+      console.error('Error generating content:', err);
+      setError(err.response?.data?.error || 'Failed to generate content. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle answer selection for a question
+  // Handle quiz answer selection
   const handleAnswerChange = (questionIndex, value) => {
     setUserAnswers(prev => ({
       ...prev,
@@ -125,7 +99,7 @@ function App() {
     }));
   };
 
-  // Submit the quiz and calculate score
+  // Submit quiz and calculate score
   const handleSubmitQuiz = () => {
     let correctCount = 0;
     quizQuestions.forEach((question, index) => {
@@ -135,41 +109,30 @@ function App() {
     });
     
     setScore(correctCount);
-    setIsSubmitted(true);
+    setQuizSubmitted(true);
   };
 
-  // Reset quiz and go back to content input
-  const handleResetQuiz = () => {
-    setQuizMode(false);
+  // Reset everything and start over
+  const handleStartOver = () => {
+    setTopic('');
+    setLevel('adult');
+    setShowResults(false);
+    setExplanation('');
     setQuizQuestions([]);
     setUserAnswers({});
+    setQuizSubmitted(false);
     setScore(null);
-    setIsSubmitted(false);
+    setError(null);
   };
 
-  // Load a quiz from history
-  const handleLoadQuiz = (historyItem) => {
-    setQuizQuestions(historyItem.questions);
-    setQuizMode(true);
-    setUserAnswers({});
-    setScore(null);
-    setIsSubmitted(false);
-    setShowHistory(false);
-  };
-
-  // Remove a quiz from history
-  const handleRemoveFromHistory = (id) => {
-    setHistory(prevHistory => {
-      const newHistory = prevHistory.filter(item => item.id !== id);
-      localStorage.setItem('studySparkHistory', JSON.stringify(newHistory));
-      return newHistory;
-    });
-  };
-
-  // Clear all history
-  const handleClearHistory = () => {
-    setHistory([]);
-    localStorage.removeItem('studySparkHistory');
+  // Get level display info
+  const getLevelInfo = (level) => {
+    const levelInfo = {
+      child: { label: 'Child (5-12 years)', color: 'success', icon: '👶' },
+      teen: { label: 'Teen (13-17 years)', color: 'warning', icon: '🧑‍🎓' },
+      adult: { label: 'Adult (18+ years)', color: 'primary', icon: '👨‍💼' }
+    };
+    return levelInfo[level] || levelInfo.adult;
   };
 
   return (
@@ -181,94 +144,14 @@ function App() {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             StudySpark AI Tutor
           </Typography>
-          {!showHistory && (
-            <Button 
-              color="inherit" 
-              startIcon={<HistoryIcon />}
-              onClick={() => setShowHistory(true)}
-            >
-              History
-            </Button>
-          )}
+          <Typography variant="subtitle1">
+            Learn Any Topic at Your Level
+          </Typography>
         </Toolbar>
       </AppBar>
 
       {/* Main content */}
       <Container maxWidth="md" sx={{ mt: 4, mb: 4, flexGrow: 1 }}>
-        {/* History panel */}
-        {showHistory && (
-          <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="h5" component="h2">
-                Quiz History
-              </Typography>
-              <Box>
-                <Button 
-                  color="secondary" 
-                  onClick={() => setShowHistory(false)}
-                  startIcon={<CloseIcon />}
-                  sx={{ mr: 1 }}
-                >
-                  Close
-                </Button>
-                {history.length > 0 && (
-                  <Button 
-                    color="error" 
-                    onClick={handleClearHistory}
-                    startIcon={<DeleteIcon />}
-                  >
-                    Clear All
-                  </Button>
-                )}
-              </Box>
-            </Box>
-            <Divider sx={{ mb: 2 }} />
-            
-            {history.length === 0 ? (
-              <Typography color="text.secondary" align="center" sx={{ py: 3 }}>
-                No quiz history found
-              </Typography>
-            ) : (
-              <Stack spacing={2}>
-                {history.map((item) => (
-                  <Paper key={item.id} elevation={1} sx={{ p: 2 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <Box>
-                        <Typography variant="subtitle2" color="text.secondary">
-                          {item.date}
-                        </Typography>
-                        <Typography variant="body1">
-                          {item.content}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {item.questions.length} questions
-                        </Typography>
-                      </Box>
-                      <Box>
-                        <Button 
-                          variant="outlined" 
-                          size="small" 
-                          onClick={() => handleLoadQuiz(item)}
-                          sx={{ mr: 1 }}
-                        >
-                          Load
-                        </Button>
-                        <IconButton 
-                          size="small" 
-                          color="error"
-                          onClick={() => handleRemoveFromHistory(item.id)}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </Box>
-                  </Paper>
-                ))}
-              </Stack>
-            )}
-          </Paper>
-        )}
-
         {/* Error message */}
         {error && (
           <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
@@ -276,154 +159,234 @@ function App() {
           </Alert>
         )}
 
-        {/* Content input */}
-        {!quizMode && (
-          <Paper elevation={3} sx={{ p: 3 }}>
-            <Typography variant="h4" component="h1" gutterBottom align="center">
-              StudySpark AI Tutor
-            </Typography>
+        {/* Topic input form */}
+        {!showResults && (
+          <Paper elevation={3} sx={{ p: 4 }}>
+            <Box sx={{ textAlign: 'center', mb: 4 }}>
+              <LightbulbIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
+              <Typography variant="h4" component="h1" gutterBottom>
+                What would you like to learn?
+              </Typography>
+              <Typography variant="subtitle1" color="text.secondary">
+                Enter any topic and I'll explain it at your level, then test your understanding
+              </Typography>
+            </Box>
             
-            <Typography variant="subtitle1" gutterBottom align="center" sx={{ mb: 3 }}>
-              Paste your study content below to generate a personalized quiz
-            </Typography>
-            
-            <TextField
-              label="Study Content"
-              multiline
-              rows={10}
-              value={studyContent}
-              onChange={handleContentChange}
-              variant="outlined"
-              fullWidth
-              sx={{ mb: 3 }}
-              placeholder="Paste your notes, textbook paragraphs, or other study material here..."
-            />
-            
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-              <FormControl sx={{ minWidth: 200 }}>
-                <InputLabel id="num-questions-label">Number of Questions</InputLabel>
+            <Stack spacing={3}>
+              <TextField
+                label="Topic to Learn"
+                value={topic}
+                onChange={handleTopicChange}
+                variant="outlined"
+                fullWidth
+                placeholder="e.g., Photosynthesis, World War II, How computers work, etc."
+                sx={{ 
+                  '& .MuiOutlinedInput-root': {
+                    fontSize: '1.1rem'
+                  }
+                }}
+              />
+              
+              <FormControl fullWidth>
+                <InputLabel id="level-select-label">Your Learning Level</InputLabel>
                 <Select
-                  labelId="num-questions-label"
-                  value={numQuestions}
-                  label="Number of Questions"
-                  onChange={handleNumQuestionsChange}
+                  labelId="level-select-label"
+                  value={level}
+                  label="Your Learning Level"
+                  onChange={handleLevelChange}
                 >
-                  {[3, 5, 7, 10].map(num => (
-                    <MenuItem key={num} value={num}>{num} questions</MenuItem>
-                  ))}
+                  <MenuItem value="child">
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <span style={{ marginRight: '8px' }}>👶</span>
+                      Child (5-12 years) - Simple explanations
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="teen">
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <span style={{ marginRight: '8px' }}>🧑‍🎓</span>
+                      Teen (13-17 years) - Clear but detailed
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="adult">
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <span style={{ marginRight: '8px' }}>👨‍💼</span>
+                      Adult (18+ years) - Comprehensive explanation
+                    </Box>
+                  </MenuItem>
                 </Select>
               </FormControl>
               
               <Button 
                 variant="contained" 
                 color="primary" 
-                onClick={handleGenerateQuiz}
-                disabled={loading || !studyContent.trim()}
-                sx={{ minWidth: 200 }}
+                size="large"
+                onClick={handleGenerateContent}
+                disabled={loading || !topic.trim()}
+                sx={{ py: 1.5, fontSize: '1.1rem' }}
               >
-                {loading ? <CircularProgress size={24} color="inherit" /> : 'Generate Quiz'}
+                {loading ? (
+                  <>
+                    <CircularProgress size={24} color="inherit" sx={{ mr: 1 }} />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <LightbulbIcon sx={{ mr: 1 }} />
+                    Learn About This Topic
+                  </>
+                )}
               </Button>
-            </Box>
+            </Stack>
           </Paper>
         )}
 
-        {/* Quiz display */}
-        {quizMode && quizQuestions.length > 0 && (
-          <Paper elevation={3} sx={{ p: 3 }}>
-            <Typography variant="h4" component="h1" gutterBottom align="center">
-              Your Quiz
-            </Typography>
-            
-            {/* Quiz results */}
-            {isSubmitted && score !== null && (
-              <Box sx={{ mb: 3 }}>
-                <Alert 
-                  severity={score/quizQuestions.length >= 0.7 ? "success" : "warning"}
-                  sx={{ mb: 2 }}
-                >
-                  You scored {score} out of {quizQuestions.length} ({Math.round(score/quizQuestions.length * 100)}%)
-                </Alert>
-              </Box>
-            )}
-
-            {/* Quiz questions */}
-            {quizQuestions.map((q, qIndex) => (
-              <Box key={qIndex} sx={{ mb: 4 }}>
-                <Typography variant="h6" gutterBottom>
-                  {qIndex + 1}. {q.question}
+        {/* Results display */}
+        {showResults && (
+          <Stack spacing={3}>
+            {/* Topic header */}
+            <Paper elevation={2} sx={{ p: 3 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
+                <Typography variant="h4" component="h1" sx={{ mb: 1 }}>
+                  {topic}
                 </Typography>
-                
-                <RadioGroup
-                  name={`question-${qIndex}`}
-                  value={userAnswers[qIndex] || ''}
-                  onChange={(e) => handleAnswerChange(qIndex, e.target.value)}
-                >
-                  {Object.entries(q.options).map(([key, value]) => (
-                    <FormControlLabel
-                      key={key}
-                      value={key}
-                      control={<Radio />}
-                      label={`${key}: ${value}`}
-                      disabled={isSubmitted}
-                      sx={{
-                        ...(isSubmitted && key === q.correct && {
-                          color: 'success.main',
-                          '& .MuiFormControlLabel-label': { fontWeight: 'bold' },
-                        }),
-                        ...(isSubmitted && userAnswers[qIndex] === key && key !== q.correct && {
-                          color: 'error.main',
-                        }),
-                      }}
-                    />
-                  ))}
-                </RadioGroup>
-                
-                {isSubmitted && (
-                  <Typography 
-                    variant="body2" 
-                    sx={{ 
-                      mt: 1, 
-                      color: userAnswers[qIndex] === q.correct ? 'success.main' : 'error.main',
-                      fontWeight: 'bold'
-                    }}
-                  >
-                    {userAnswers[qIndex] === q.correct 
-                      ? '✓ Correct!' 
-                      : `✗ Incorrect. The correct answer is ${q.correct}.`}
-                  </Typography>
-                )}
+                <Chip 
+                  label={getLevelInfo(level).label}
+                  color={getLevelInfo(level).color}
+                  icon={<span>{getLevelInfo(level).icon}</span>}
+                />
               </Box>
-            ))}
+            </Paper>
 
-            {/* Quiz actions */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
-              <Button 
-                variant="outlined" 
-                onClick={handleResetQuiz}
-              >
-                Back to Content
-              </Button>
-              
-              {!isSubmitted ? (
-                <Button 
-                  variant="contained" 
-                  color="primary" 
-                  onClick={handleSubmitQuiz}
-                  disabled={Object.keys(userAnswers).length !== quizQuestions.length}
-                >
-                  Submit Quiz
-                </Button>
-              ) : (
-                <Button 
-                  variant="contained" 
-                  color="secondary" 
-                  onClick={handleResetQuiz}
-                >
-                  Create New Quiz
-                </Button>
-              )}
-            </Box>
-          </Paper>
+            {/* Explanation section */}
+            <Card elevation={3}>
+              <CardContent sx={{ p: 4 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <LightbulbIcon sx={{ mr: 1, color: 'primary.main' }} />
+                  <Typography variant="h5" component="h2">
+                    Explanation
+                  </Typography>
+                </Box>
+                <Typography variant="body1" sx={{ lineHeight: 1.7, fontSize: '1.1rem' }}>
+                  {explanation}
+                </Typography>
+              </CardContent>
+            </Card>
+
+            {/* Quiz section */}
+            {quizQuestions.length > 0 && (
+              <Card elevation={3}>
+                <CardContent sx={{ p: 4 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                    <QuizIcon sx={{ mr: 1, color: 'secondary.main' }} />
+                    <Typography variant="h5" component="h2">
+                      Test Your Understanding
+                    </Typography>
+                  </Box>
+
+                  {/* Quiz results */}
+                  {quizSubmitted && score !== null && (
+                    <Alert 
+                      severity={score === quizQuestions.length ? "success" : score >= quizQuestions.length/2 ? "info" : "warning"}
+                      sx={{ mb: 3 }}
+                    >
+                      <Typography variant="h6">
+                        Quiz Results: {score} out of {quizQuestions.length} correct 
+                        ({Math.round((score/quizQuestions.length) * 100)}%)
+                      </Typography>
+                      <Typography>
+                        {score === quizQuestions.length ? "Perfect! You understood everything!" :
+                         score >= quizQuestions.length/2 ? "Good job! You got most of it right." :
+                         "Keep learning! Review the explanation and try again."}
+                      </Typography>
+                    </Alert>
+                  )}
+
+                  {/* Quiz questions */}
+                  <Stack spacing={3}>
+                    {quizQuestions.map((question, qIndex) => (
+                      <Paper key={qIndex} elevation={1} sx={{ p: 3 }}>
+                        <Typography variant="h6" gutterBottom>
+                          Question {qIndex + 1}: {question.question}
+                        </Typography>
+                        
+                        <RadioGroup
+                          name={`question-${qIndex}`}
+                          value={userAnswers[qIndex] || ''}
+                          onChange={(e) => handleAnswerChange(qIndex, e.target.value)}
+                        >
+                          {Object.entries(question.options).map(([key, value]) => (
+                            <FormControlLabel
+                              key={key}
+                              value={key}
+                              control={<Radio />}
+                              label={`${key}. ${value}`}
+                              disabled={quizSubmitted}
+                              sx={{
+                                ...(quizSubmitted && key === question.correct && {
+                                  color: 'success.main',
+                                  '& .MuiFormControlLabel-label': { fontWeight: 'bold' },
+                                }),
+                                ...(quizSubmitted && userAnswers[qIndex] === key && key !== question.correct && {
+                                  color: 'error.main',
+                                }),
+                              }}
+                            />
+                          ))}
+                        </RadioGroup>
+                        
+                        {quizSubmitted && (
+                          <Typography 
+                            variant="body2" 
+                            sx={{ 
+                              mt: 2, 
+                              p: 1,
+                              borderRadius: 1,
+                              bgcolor: userAnswers[qIndex] === question.correct ? 'success.light' : 'error.light',
+                              color: userAnswers[qIndex] === question.correct ? 'success.dark' : 'error.dark',
+                              fontWeight: 'bold'
+                            }}
+                          >
+                            {userAnswers[qIndex] === question.correct 
+                              ? '✓ Correct!' 
+                              : `✗ Incorrect. The correct answer is ${question.correct}.`}
+                          </Typography>
+                        )}
+                      </Paper>
+                    ))}
+                  </Stack>
+
+                  {/* Quiz actions */}
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+                    <Button 
+                      variant="outlined" 
+                      onClick={handleStartOver}
+                    >
+                      Learn New Topic
+                    </Button>
+                    
+                    {!quizSubmitted ? (
+                      <Button 
+                        variant="contained" 
+                        color="secondary" 
+                        onClick={handleSubmitQuiz}
+                        disabled={Object.keys(userAnswers).length !== quizQuestions.length}
+                      >
+                        Submit Quiz
+                      </Button>
+                    ) : (
+                      <Button 
+                        variant="contained" 
+                        color="primary" 
+                        onClick={handleStartOver}
+                      >
+                        Learn Another Topic
+                      </Button>
+                    )}
+                  </Box>
+                </CardContent>
+              </Card>
+            )}
+          </Stack>
         )}
       </Container>
 
@@ -434,7 +397,7 @@ function App() {
       >
         <Container maxWidth="md">
           <Typography variant="body2" color="text.secondary" align="center">
-            StudySpark AI Tutor - Powered by OpenAI
+            StudySpark AI Tutor - Learn any topic at your level • Powered by OpenAI
           </Typography>
         </Container>
       </Box>

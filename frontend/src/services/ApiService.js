@@ -8,16 +8,16 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
  */
 const ApiService = {
   /**
-   * Generate a quiz based on study content
-   * @param {string} studyContent - The study material to generate a quiz from
-   * @param {number} numQuestions - Number of questions to generate
-   * @returns {Promise} - The API response with quiz questions
+   * Get explanation and quiz for a topic at specified level
+   * @param {string} topic - The topic to learn about
+   * @param {string} level - The learning level (child, teen, adult)
+   * @returns {Promise} - The API response with explanation and quiz questions
    */
-  generateQuiz: async (studyContent, numQuestions) => {
+  explainTopic: async (topic, level) => {
     try {
-      const response = await axios.post(`${API_URL}/api/generate-quiz`, {
-        studyContent,
-        numQuestions
+      const response = await axios.post(`${API_URL}/api/explain`, {
+        topic,
+        level
       });
       
       return response.data;
