@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
-  Container, Typography, Box, TextField, Button, Paper, CircularProgress, Alert, FormControl, InputLabel, Select, MenuItem, Radio, RadioGroup, FormControlLabel, Stack, Divider, AppBar, Toolbar, IconButton, Card, CardContent, Tabs, Tab, Chip, ThemeProvider, createTheme, Fade, Grow, Zoom
+  Container, Typography, Box, TextField, Button, Paper, CircularProgress, Alert, FormControl, InputLabel, Select, MenuItem, Stack, Divider, AppBar, Toolbar, IconButton, Card, CardContent, Tabs, Tab, Chip, ThemeProvider, createTheme, Fade, Grow, Zoom
 } from '@mui/material';
 import SchoolIcon from '@mui/icons-material/School';
 import HistoryIcon from '@mui/icons-material/History';
@@ -14,7 +14,7 @@ import Brightness7Icon from '@mui/icons-material/Brightness7';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import Joyride, { STATUS } from 'react-joyride';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
 const USER_LEVELS = {
   child: { label: 'Child (Ages 6-12)', icon: '👶' },
@@ -26,8 +26,8 @@ const TOUR_STEPS = [
   { target: '.topic-input', content: 'Enter any topic you want to learn about!', placement: 'bottom', disableBeacon: true },
   { target: '.level-select', content: 'Choose your learning level for personalized content', placement: 'bottom' },
   { target: '.generate-button', content: 'Click here to generate an explanation and quiz', placement: 'bottom' },
-  { target: '.explanation-tab', content: 'View the main explanation and real-world examples', placement: 'bottom' },
-  { target: '.quiz-tab', content: 'Test your knowledge with interactive quizzes', placement: 'bottom' },
+  { target: '.explanation-tab', content: 'View the main explanation', placement: 'bottom' },
+  { target: '.quiz-tab', content: 'Test your knowledge with the quiz', placement: 'bottom' },
   { target: '.history-button', content: 'Access your learning history anytime', placement: 'bottom' },
   { target: '.settings-section', content: 'Customize your experience with dark mode and text size', placement: 'bottom' }
 ];
@@ -37,12 +37,9 @@ function App() {
   const [topic, setTopic] = useState('');
   const [userLevel, setUserLevel] = useState('teen');
   const [explanation, setExplanation] = useState(null);
-  const [quizQuestions, setQuizQuestions] = useState([]);
+  const [quizQuestions, setQuizQuestions] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [userAnswers, setUserAnswers] = useState({});
-  const [score, setScore] = useState(null);
-  const [isSubmitted, setIsSubmitted] = useState(false);
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
@@ -50,7 +47,6 @@ function App() {
   const [fontSize, setFontSize] = useState('medium');
   const [runTour, setRunTour] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
-  const [quizMode, setQuizMode] = useState(false);
 
   // Theme
   const theme = createTheme({
@@ -110,20 +106,15 @@ function App() {
     setLoading(true);
     setError(null);
     setExplanation(null);
-    setQuizQuestions([]);
-    setUserAnswers({});
-    setScore(null);
-    setIsSubmitted(false);
-    setQuizMode(false);
+    setQuizQuestions('');
     try {
-      const response = await axios.post(`${API_URL}/api/generate`, {
+      const response = await axios.post(`${API_URL}/api/explain`, {
         topic,
         level: userLevel
       });
       if (response.data.success) {
         setExplanation(response.data.explanation);
         setQuizQuestions(response.data.questions);
-        setQuizMode(true);
         // Save to history
         const newItem = {
           id: Date.now(),
@@ -144,35 +135,10 @@ function App() {
     }
   };
 
-  const handleAnswerChange = (questionIndex, value) => {
-    setUserAnswers(prev => ({ ...prev, [questionIndex]: value }));
-  };
-
-  const handleSubmitQuiz = () => {
-    let correctCount = 0;
-    quizQuestions.forEach((question, index) => {
-      if (userAnswers[index] === question.correct) correctCount++;
-    });
-    setScore(correctCount);
-    setIsSubmitted(true);
-  };
-
-  const handleResetQuiz = () => {
-    setQuizMode(false);
-    setQuizQuestions([]);
-    setUserAnswers({});
-    setScore(null);
-    setIsSubmitted(false);
-  };
-
   const handleLoadQuiz = (historyItem) => {
     setQuizQuestions(historyItem.questions);
-    setQuizMode(true);
-    setUserAnswers({});
-    setScore(null);
-    setIsSubmitted(false);
-    setShowHistory(false);
     setExplanation(historyItem.explanation);
+    setShowHistory(false);
     setTopic(historyItem.topic);
     setUserLevel(historyItem.userLevel);
   };
@@ -264,7 +230,7 @@ function App() {
               {/* Error Display */}
               {error && (<Fade in={!!error}><Alert severity="error" sx={{ mb: 4 }}>{error}</Alert></Fade>)}
               {/* Content Display */}
-              {quizMode && explanation && (
+              {explanation && (
                 <Grow in={!!explanation}>
                   <Paper elevation={3} sx={{ mb: 4 }}>
                     <Tabs value={activeTab} onChange={handleTabChange} centered>
@@ -277,49 +243,20 @@ function App() {
                           <Card>
                             <CardContent>
                               <Typography variant="h6" gutterBottom>Main Explanation</Typography>
-                              <Typography variant="body1" paragraph>{explanation.main}</Typography>
-                            </CardContent>
-                          </Card>
-                          <Card>
-                            <CardContent>
-                              <Typography variant="h6" gutterBottom>Real-World Example</Typography>
-                              <Typography variant="body1">{explanation.analogy}</Typography>
+                              <Typography variant="body1" paragraph>{explanation}</Typography>
                             </CardContent>
                           </Card>
                         </Stack>
                       ) : (
-                        // Quiz Section
                         <Stack spacing={3}>
-                          {quizQuestions.map((question, index) => (
-                            <Card key={index}>
-                              <CardContent>
-                                <Typography variant="h6" gutterBottom>Question {index + 1}</Typography>
-                                <Typography variant="body1" paragraph>{question.question}</Typography>
-                                <RadioGroup value={userAnswers[index] || ''} onChange={(e) => handleAnswerChange(index, e.target.value)}>
-                                  {question.options.map((option, optIndex) => (
-                                    <FormControlLabel key={optIndex} value={option} control={<Radio />} label={option} disabled={isSubmitted} />
-                                  ))}
-                                </RadioGroup>
-                                {isSubmitted && (
-                                  <Box sx={{ mt: 2 }}>
-                                    <Chip label={userAnswers[index] === question.correct ? 'Correct!' : 'Incorrect'} color={userAnswers[index] === question.correct ? 'success' : 'error'} sx={{ mr: 1 }} />
-                                    {userAnswers[index] !== question.correct && (
-                                      <Typography variant="body2" color="text.secondary">Correct answer: {question.correct}</Typography>
-                                    )}
-                                  </Box>
-                                )}
-                              </CardContent>
-                            </Card>
-                          ))}
-                          {!isSubmitted ? (
-                            <Button variant="contained" color="primary" onClick={handleSubmitQuiz} disabled={Object.keys(userAnswers).length !== quizQuestions.length}>Submit Quiz</Button>
-                          ) : (
-                            <Box sx={{ textAlign: 'center' }}>
-                              <Typography variant="h6" gutterBottom>Your Score: {score} out of {quizQuestions.length}</Typography>
-                              <Button variant="outlined" onClick={handleResetQuiz} sx={{ mr: 1 }}>Try Again</Button>
-                              <Button variant="contained" onClick={() => setActiveTab(0)}>Review Explanation</Button>
-                            </Box>
-                          )}
+                          <Card>
+                            <CardContent>
+                              <Typography variant="h6" gutterBottom>Quiz</Typography>
+                              <Typography variant="body1" paragraph>
+                                {quizQuestions}
+                              </Typography>
+                            </CardContent>
+                          </Card>
                         </Stack>
                       )}
                     </Box>
@@ -349,7 +286,6 @@ function App() {
                           <Typography variant="subtitle2" color="text.secondary">{item.date}</Typography>
                           <Typography variant="h6">{item.topic}</Typography>
                           <Chip label={USER_LEVELS[item.userLevel].label} size="small" sx={{ mr: 1 }} />
-                          <Typography variant="body2" color="text.secondary">{item.questions.length} questions</Typography>
                         </Box>
                         <Box>
                           <Button variant="outlined" size="small" onClick={() => handleLoadQuiz(item)} sx={{ mr: 1 }}>Review</Button>
@@ -366,7 +302,7 @@ function App() {
         {/* Footer */}
         <Box component="footer" sx={{ py: 3, mt: 'auto', bgcolor: 'background.paper', borderTop: 1, borderColor: 'divider', transition: 'background-color 0.3s ease-in-out' }}>
           <Container maxWidth="md">
-            <Typography variant="body2" color="text.secondary" align="center">StudySpark AI Tutor - Powered by OpenAI</Typography>
+            <Typography variant="body2" color="text.secondary" align="center">StudySpark AI Tutor - Powered by Gemini</Typography>
           </Container>
         </Box>
       </Box>
