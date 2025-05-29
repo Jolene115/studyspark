@@ -118,7 +118,7 @@ function App() {
     try {
       const response = await axios.post(`${API_URL}/api/generate`, {
         topic,
-        userLevel
+        level: userLevel
       });
       if (response.data.success) {
         setExplanation(response.data.explanation);

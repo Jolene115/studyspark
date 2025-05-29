@@ -16,7 +16,7 @@ CORS(app)  # Enable CORS for all routes
 # Set up OpenAI API
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-@app.route('/api/explain', methods=['POST'])
+@app.route('/api/generate', methods=['POST'])
 def explain_topic():
     try:
         # Get request data
@@ -136,7 +136,7 @@ def health_check():
     """Health check endpoint"""
     return jsonify({"status": "ok", "message": "StudySpark AI Tutor API is running"})
 
+
 if __name__ == '__main__':
-    # For local development
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 5001))  # Default to 5001 instead of 5000
     app.run(host='0.0.0.0', port=port, debug=True)
