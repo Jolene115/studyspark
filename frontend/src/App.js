@@ -25,21 +25,12 @@ const USER_LEVELS = {
 const TOUR_STEPS = [
   { target: '.topic-input', content: 'Enter any topic you want to learn about!', placement: 'bottom', disableBeacon: true },
   { target: '.level-select', content: 'Choose your learning level for personalized content', placement: 'bottom' },
+  { target: '.generate-button', content: 'Click here to generate an explanation and quiz', placement: 'bottom' },
   { target: '.explanation-tab', content: 'View the main explanation and real-world examples', placement: 'bottom' },
   { target: '.quiz-tab', content: 'Test your knowledge with interactive quizzes', placement: 'bottom' },
   { target: '.history-button', content: 'Access your learning history anytime', placement: 'bottom' },
   { target: '.settings-section', content: 'Customize your experience with dark mode and text size', placement: 'bottom' }
 ];
-
-// Debounce hook
-function useDebounce(value, delay) {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-  useEffect(() => {
-    const handler = setTimeout(() => setDebouncedValue(value), delay);
-    return () => clearTimeout(handler);
-  }, [value, delay]);
-  return debouncedValue;
-}
 
 function App() {
   // State
@@ -60,9 +51,6 @@ function App() {
   const [runTour, setRunTour] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
   const [quizMode, setQuizMode] = useState(false);
-
-  // Debounced topic for auto-generation
-  const debouncedTopic = useDebounce(topic, 700);
 
   // Theme
   const theme = createTheme({
@@ -109,21 +97,6 @@ function App() {
   useEffect(() => { localStorage.setItem('studySparkDarkMode', JSON.stringify(darkMode)); }, [darkMode]);
   useEffect(() => { localStorage.setItem('studySparkFontSize', fontSize); }, [fontSize]);
 
-  // Auto-generate explanation and quiz when topic changes
-  useEffect(() => {
-    if (debouncedTopic.trim()) {
-      handleGenerate(debouncedTopic, userLevel);
-    } else {
-      setExplanation(null);
-      setQuizQuestions([]);
-      setQuizMode(false);
-      setUserAnswers({});
-      setScore(null);
-      setIsSubmitted(false);
-    }
-    // eslint-disable-next-line
-  }, [debouncedTopic, userLevel]);
-
   // Handlers
   const handleTopicChange = (e) => setTopic(e.target.value);
   const handleUserLevelChange = (e) => setUserLevel(e.target.value);
@@ -131,9 +104,9 @@ function App() {
   const handleDarkModeToggle = () => setDarkMode(!darkMode);
   const handleFontSizeChange = (event) => setFontSize(event.target.value);
 
-  // Generate explanation and quiz
-  const handleGenerate = async (topicArg, userLevelArg) => {
-    if (!topicArg.trim()) return;
+  // Generate explanation and quiz (manual)
+  const handleGenerate = async () => {
+    if (!topic.trim()) return;
     setLoading(true);
     setError(null);
     setExplanation(null);
@@ -144,8 +117,8 @@ function App() {
     setQuizMode(false);
     try {
       const response = await axios.post(`${API_URL}/api/generate`, {
-        topic: topicArg,
-        userLevel: userLevelArg
+        topic,
+        userLevel
       });
       if (response.data.success) {
         setExplanation(response.data.explanation);
@@ -155,8 +128,8 @@ function App() {
         const newItem = {
           id: Date.now(),
           date: new Date().toLocaleDateString(),
-          topic: topicArg,
-          userLevel: userLevelArg,
+          topic,
+          userLevel,
           explanation: response.data.explanation,
           questions: response.data.questions
         };
@@ -275,6 +248,16 @@ function App() {
                         ))}
                       </Select>
                     </FormControl>
+                    <Button
+                      className="generate-button"
+                      variant="contained"
+                      color="primary"
+                      onClick={handleGenerate}
+                      disabled={loading || !topic.trim()}
+                      startIcon={loading ? <CircularProgress size={20} /> : <SchoolIcon />}
+                    >
+                      {loading ? 'Generating...' : 'Generate Explanation & Quiz'}
+                    </Button>
                   </Stack>
                 </Paper>
               </Zoom>
