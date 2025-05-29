@@ -34,19 +34,19 @@ Features:
 - **Production-Ready**: Deployable on Render using Gunicorn.
 
 **How to Run Locally**
-To run the backend on your local machine, you first navigate to the backend/ directory. It’s recommended (but not required) to set up a virtual environment using venv. Then, you install the dependencies listed in requirements.txt and create a .env file with your actual OpenAI API key.
+To run the backend on your local machine, you first navigate to the backend/ directory. It’s recommended (but not required) to set up a virtual environment using venv. Then, you install the dependencies listed in requirements.txt and create a .env file with your actual GOOGLE API key.
 The Flask app is run using python app.py. By default, it runs on port 5050, but this can be changed if needed. Once running, the /api/health route can be accessed from the browser or Postman to verify that the backend is online. The /api/generate-quiz route is intended to be called from the frontend or an API client.
 
 **Security and Environment Variables**
-The .env file, which contains the sensitive OPENAI_API_KEY, is intentionally excluded from the repository using .gitignore. This prevents accidental sharing of secret keys. Instead, a .env.example file is included to guide collaborators or testers on how to configure their environment correctly.
-For deployment on platforms like Render, the API key should be added through Render’s web interface as an environment variable named OPENAI_API_KEY.
+The .env file, which contains the sensitive GOOGLE_API_KEY, is intentionally excluded from the repository using .gitignore. This prevents accidental sharing of secret keys. Instead, a .env.example file is included to guide collaborators or testers on how to configure their environment correctly.
+For deployment on platforms like Render, the API key should be added through Render’s web interface as an environment variable named GOOGLE_API_KEY.
 
 **Deployment Notes**
 This backend is designed to be deployed on Render using the following configuration:
 - The root directory for the backend should be set to backend/.
 - The build command should be: pip install -r requirements.txt.
 - The start command must be: gunicorn app:app.
-- The environment variable OPENAI_API_KEY must be defined in the Render dashboard.
+- The environment variable GOOGLE_API_KEY must be defined in the Render dashboard.
 
 Once deployed, the app will automatically serve requests through Render’s assigned port using Gunicorn.
 
