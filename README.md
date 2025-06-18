@@ -138,7 +138,7 @@ Once deployed, the app will automatically serve requests through Render’s assi
 
 ---
 
-*Final Remarks*
+**Final Remarks**
 StudySpark’s backend is secure, scalable, and ready for production. It is built with clean separation of concerns and follows best practices for environment management and API structure. The use of Google Gemini AI allows for highly personalized and accurate content generation, while Flask ensures simplicity and flexibility in deployment and development.
 
 This project was developed as part of the DevNetwork AI/ML Hackathon 2025, with a focus on making education more accessible and interactive using modern AI technologies.
