@@ -155,9 +155,9 @@ This project was developed as part of the DevNetwork AI/ML Hackathon 2025, with 
 
 - Explanations and quiz content rely fully on Google Gemini AI; quality depends on model performance  
 - Only supports English input  
-- Stateless: does not store user history, preferences, or quiz results  
+- **Search history is stored temporarily for session-based review**, but there is no persistent database or user login  
 - Assumes access to a valid Gemini API key and internet connection  
-- No frontend UI included in this submission; designed for API consumption or integration
+- Frontend UI is implemented but lightweight; additional accessibility features are planned for future iterations
 
 ---
 
