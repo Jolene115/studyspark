@@ -150,3 +150,21 @@ StudySpark’s backend is secure, scalable, and ready for production. It is buil
 This project was developed as part of the DevNetwork AI/ML Hackathon 2025, with a focus on making education more accessible and interactive using modern AI technologies.
 
 ---
+
+## ⚠️ Assumptions & Limitations
+
+- Explanations and quiz content rely fully on Google Gemini AI; quality depends on model performance  
+- Only supports English input  
+- Stateless: does not store user history, preferences, or quiz results  
+- Assumes access to a valid Gemini API key and internet connection  
+- No frontend UI included in this submission; designed for API consumption or integration
+
+---
+
+## 📚 Data Sources
+
+- No external datasets are used or stored.  
+- All content is generated dynamically via **Google Gemini AI** using controlled prompt templates.  
+- The AI is prompted with user-defined topics to create tailored educational content and quizzes.
+
+---
