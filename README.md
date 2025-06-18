@@ -1,9 +1,10 @@
----
-> ⚠️ This branch (`aithon-2025`) is part of the AITHON 2025: AI for Social Good Hackathon.
-> 
-> ## 🎓 Project Title: StudySpark: EqualLearn
-> 
-> This version enhances the original StudySpark AI tutor to focus on educational equity — enabling personalized, accessible AI tutoring for underserved learners using Google’s Gemini AI.
+## ⚠️ AITHON 2025 Hackathon Notice
+
+This branch (`aithon-2025`) was created for the **AITHON 2025: AI for Social Good Hackathon**.  
+**Project Title:** StudySpark: EqualLearn
+
+This version enhances the original StudySpark AI tutor to focus on accessible, AI-powered education for underserved learners.
+
 ---
 
 # StudySpark: EqualLearn
