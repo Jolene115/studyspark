@@ -14,7 +14,7 @@ import Brightness7Icon from '@mui/icons-material/Brightness7';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import Joyride, { STATUS } from 'react-joyride';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+const API_URL = '/api/explain';
 
 const USER_LEVELS = {
   child: { label: 'Child (Ages 6-12)', icon: '👶' },
@@ -108,10 +108,14 @@ function App() {
     setExplanation(null);
     setQuizQuestions('');
     try {
-      const response = await axios.post(`${API_URL}/api/explain`, {
+      // const response = await axios.post(`${API_URL}/api/explain`, {
+      //   topic,
+      //   level: userLevel
+      // });
+      const response = await axios.post(API_URL, {
         topic,
         level: userLevel
-      });
+      });      
       if (response.data.success) {
         setExplanation(response.data.explanation);
         setQuizQuestions(response.data.questions);
@@ -243,7 +247,8 @@ function App() {
                           <Card>
                             <CardContent>
                               <Typography variant="h6" gutterBottom>Main Explanation</Typography>
-                              <Typography variant="body1" paragraph>{explanation}</Typography>
+                              {/* <Typography variant="body1" paragraph>{explanation}</Typography> */}
+                              <Typography variant="body1" paragraph component="div" dangerouslySetInnerHTML={{ __html: explanation }} />
                             </CardContent>
                           </Card>
                         </Stack>
@@ -252,9 +257,23 @@ function App() {
                           <Card>
                             <CardContent>
                               <Typography variant="h6" gutterBottom>Quiz</Typography>
-                              <Typography variant="body1" paragraph>
-                                {quizQuestions}
-                              </Typography>
+                              {Array.isArray(quizQuestions) ? (
+                              quizQuestions.map((q, index) => (
+                                <Box key={index} sx={{ mb: 3 }}>
+                                  <Typography variant="subtitle1"><strong>Q{index + 1}:</strong> {q.question}</Typography>
+                                  {Object.entries(q.options).map(([key, value]) => (
+                                    <Typography key={key} sx={{ pl: 2 }}>
+                                      <strong>{key}:</strong> {value}
+                                    </Typography>
+                                  ))}
+                                  <Typography sx={{ mt: 1, fontStyle: 'italic', color: 'green' }}>
+                                    Correct Answer: {q.correct}
+                                  </Typography>
+                                </Box>
+                              ))
+                            ) : (
+                              <Typography variant="body1" paragraph>{quizQuestions}</Typography>
+                            )}
                             </CardContent>
                           </Card>
                         </Stack>
