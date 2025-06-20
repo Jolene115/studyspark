@@ -12,4 +12,7 @@ __pycache__/
 venv/
 env/
 
+# Ignore database files
+node_modules/
 .DS_Store
+.eslintcache
