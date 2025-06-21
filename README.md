@@ -141,6 +141,31 @@ This backend is designed to be deployed on Render using the following configurat
 
 Once deployed, the app will automatically serve requests through Render’s assigned port using Gunicorn.
 
+## 🌐 Live Demo
+
+Try the app here: [https://studyspark-frontend.onrender.com](https://studyspark-frontend.onrender.com)
+
+Backend: [https://studyspark-flask-backend.onrender.com](https://studyspark-flask-backend.onrender.com)
+
+## 🚀 How to Use
+
+1. Enter a topic you want to learn (e.g., "Photosynthesis").
+2. Select your learning level (Child, Teen, or Adult).
+3. Click **Generate Explanation & Quiz**.
+4. View the explanation and take the quiz!
+
+## 🛠️ Built With
+
+- React (Frontend)
+- Flask (Backend)
+- Gemini 1.5 API (Google Generative AI)
+- Render (Deployment)
+
+## 🔧 Deployment
+
+- Frontend: [Render](https://render.com/) – deployed at `studyspark-frontend.onrender.com`
+- Backend: [Render](https://render.com/) – deployed at `studyspark-flask-backend.onrender.com`
+
 ---
 
 **Final Remarks**
@@ -166,5 +191,12 @@ This project was developed as part of the DevNetwork AI/ML Hackathon 2025, with 
 - No external datasets are used or stored.  
 - All content is generated dynamically via **Google Gemini AI** using controlled prompt templates.  
 - The AI is prompted with user-defined topics to create tailored educational content and quizzes.
+
+---
+
+## 🤝 Acknowledgments
+
+- Built for AITHON 2025
+- AI powered by Google's Gemini API
 
 ---
