@@ -26,8 +26,6 @@ const TOUR_STEPS = [
   { target: '.topic-input', content: 'Enter any topic you want to learn about!', placement: 'bottom', disableBeacon: true },
   { target: '.level-select', content: 'Choose your learning level for personalized content', placement: 'bottom' },
   { target: '.generate-button', content: 'Click here to generate an explanation and quiz', placement: 'bottom' },
-  { target: '.explanation-tab', content: 'View the main explanation', placement: 'bottom' },
-  { target: '.quiz-tab', content: 'Test your knowledge with the quiz', placement: 'bottom' },
   { target: '.history-button', content: 'Access your learning history anytime', placement: 'bottom' },
   { target: '.settings-section', content: 'Customize your experience with dark mode and text size', placement: 'bottom' }
 ];
