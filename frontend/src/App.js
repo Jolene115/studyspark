@@ -14,7 +14,7 @@ import Brightness7Icon from '@mui/icons-material/Brightness7';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import Joyride, { STATUS } from 'react-joyride';
 
-const API_URL = '/api/explain';
+const API_URL = 'https://studyspark-flask-backend.onrender.com/api/explain';
 
 const USER_LEVELS = {
   child: { label: 'Child (Ages 6-12)', icon: '👶' },
