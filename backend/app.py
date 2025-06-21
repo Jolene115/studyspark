@@ -12,7 +12,14 @@ load_dotenv()
 
 app = Flask(__name__)
 # CORS(app)
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
+CORS(app, resources={
+    r"/api/*": {
+        "origins": [
+            "http://localhost:3000",
+            "https://studyspark-frontend.onrender.com"
+        ]
+    }
+})
 
 # Configure Gemini API
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
