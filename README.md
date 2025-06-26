@@ -55,8 +55,8 @@ The backend uses prompt engineering to communicate with Gemini, then parses and 
 ## 📦 Hackathon Deliverables
 
 - ✅ `aithon-2025` GitHub branch (this codebase)  
-- 📊 `/docs/presentation.pdf` — [to be added]  
-- 🎥 Demo video — [coming soon]  
+- 📊 `/docs/presentation.pdf` — [https://docs.google.com/presentation/d/1p_vXyEP9glOgE9cA3kERvIFpjyI1kvfSk9h1x-onJIM/edit?usp=sharing]  
+- 🎥 Demo video — [https://youtu.be/fRMgthUMwAE]  
 - ✅ A functional backend demonstrating AI-generated explanations and quizzes
 
 ---
